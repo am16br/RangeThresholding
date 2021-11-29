@@ -16,7 +16,7 @@ public final class SQL{
     public String err = null;
     private Connection con;
     private Statement stmt;
-    public ResultSet rs = null;
+    public ResultSet rs = null;   
     public boolean open = false;
 //Connect to SQL server
     public SQL(String host, String port, String user, String pass, String db){
@@ -31,9 +31,9 @@ public final class SQL{
             e.printStackTrace();
         }
     }
-//Close SQL connnection
+//Close SQL connnection 
     public boolean close(){
-        if (!open)
+        if (!open) 
             return true;
         try {
             getConnection().close();
@@ -44,14 +44,14 @@ public final class SQL{
             return false;
         }
     }
-//getters
+//getters  
     public Connection getConnection(){
         return con;         //getter for SQL connection
     }
     public Statement getStmt(){
         return stmt;         //getter for SQL statement
     }
-//work with database
+//work with database      
     public boolean tryUpdate(String str){
         try {       //try to modify/update DB with query in string
             getStmt().executeUpdate(str);
@@ -80,7 +80,7 @@ public final class SQL{
             return false;
         }
     }
-//Data Definition-Create/delete tables
+//Data Definition-Create/delete tables 
     boolean createTable(String table, String fields){
         dropTable(table);
         return tryUpdate("CREATE TABLE "+table+" ("+fields+");");
@@ -88,7 +88,7 @@ public final class SQL{
      boolean dropTable(String table){
         return tryUpdate("DROP TABLE "+table+";");
     }
-
+     
     public int count(String table){ //return the number of tuples in a table
         trySelect("SELECT Count(*) FROM "+table+";");
         try {
@@ -105,10 +105,9 @@ public final class SQL{
         trySelect("SELECT COUNT(DISTINCT RangeX) FROM (SELECT DISTINCT RangeX FROM Query UNION SELECT DISTINCT RangeY FROM Query) AS c;");
         try {
             rs.next();
-            i=(int)rs.getFloat(1);
+            i=rs.getInt(1);
         } catch (SQLException e) {
             err = e.toString();
-            System.out.println(err);
             i=0;
         }
         float[] endpoints=new float[i];
@@ -150,14 +149,39 @@ public final class SQL{
             return -1;
         }
     }
-//update tuples in database
+    public int[] selectFieldsWhere(String field,String table, String column, String value) {
+        int i;
+        trySelect("SELECT COUNT("+field+") FROM "+table+" WHERE "+column+"="+value+";");
+        try {
+            rs.next();
+            i=rs.getInt(1);
+        } catch (SQLException e) {
+            err = e.toString();
+            i=0;
+        }
+        int[] ret=new int[i];
+        if(i!=0){
+            i=0;
+            trySelect("SELECT "+field+" FROM "+table+" WHERE "+column+"="+value+";");
+            while(next()){
+                try {   //return array of endpoints
+                    ret[i]=rs.getInt(1);
+                    i+=1;
+                } catch (SQLException e) {
+                    Logger.getLogger(SQL.class.getName()).log(Level.SEVERE, null, e);
+                }
+            }
+        }
+        return ret;   //return as array of floats
+    }
+//update tuples in database  
     public boolean updateWhere(String table, String column, String value, String values) {
         return tryUpdate("UPDATE "+table+" SET "+values+" WHERE "+column+"="+value+";");
     }
     public boolean updateAll(String table, String column, String value) {
         return tryUpdate("UPDATE "+table+" SET "+column+"="+value+";");
     }
- //insert into database
+ //insert into database   
     public boolean insert(String table, String values) {
         return tryUpdate("INSERT INTO "+table+" VALUES ("+values+");");
     }

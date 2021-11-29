@@ -1,5 +1,5 @@
 package com.mycompany.rangethresholding;
-
+import java.sql.*;
 import java.sql.SQLException;
 
 /**
@@ -38,9 +38,9 @@ public class EndpointTree {
                 str=String.valueOf(Low)+" AND <cast(RangeY as binary_double) = binary_double_infinity";
             }
             threshold=(int)s.selectFieldWhere("sum(Threshold)", "Query", "RangeX>", str); 
-            s.selectFieldWhere("QueryId", "Query", "RangeX>", str);
-            while(s.next()){
-                str=s.rs.getInt(1)+","+i;
+            int[]id=s.selectFieldsWhere("QueryId", "Query", "RangeX>", str);
+            for(int z=0;z<id.length;z++){
+                str=id[z]+","+i;
                 s.insert("Heap",str);
             }
             str=new StringBuilder().append(i).append(",0,").append(threshold).append(",").append(Low)
